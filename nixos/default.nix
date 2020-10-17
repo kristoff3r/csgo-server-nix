@@ -30,6 +30,11 @@ let
       default = 14;
       description = "Slots on the server";
     };
+    ip = mkOption {
+      type = types.str;
+      default = "0.0.0.0";
+      description = "IP address the server binds to";
+    };
     port = mkOption {
       type = types.int;
       default = 27015;
@@ -109,6 +114,7 @@ in
           -autoupdate -steam_dir ${cfg.stateDir} -steamcmd_script ${csgods-update} \
           -tickrate ${toString cfg.launchOptions.tickrate} \
           -maxplayers ${toString cfg.launchOptions.maxPlayers} \
+          -ip ${cfg.launchOptions.ip} \
           -port ${toString cfg.launchOptions.port} \
           +map ${cfg.launchOptions.map} \
           +sv_setsteamaccount ${cfg.launchOptions.gameLoginToken}

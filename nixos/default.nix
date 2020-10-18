@@ -19,20 +19,23 @@ let
        ${cfg.stateDir}/srcds_linux
     echo "Done updating"
 
-    # Cleanup /tmp/dumps, otherwise it prevents steam from starting
-    rm -rf /tmp/dumps
-
-    echo "Registering plugins"
-    ln -fs "${plugins}/share/addons" "${cfg.stateDir}/csgo"
-    for f in ${plugins}/share/cfg/*; do
-      ln -fs "$f" "${cfg.stateDir}/csgo/cfg"
+    echo "Registering plugins and configs"
+    rm -rf "${cfg.stateDir}/csgo/addons"
+    for plugin in ${plugins}/*; do
+      echo "Registering $plugin"
+      cp -rLv --no-preserve=mode,ownership $plugin/share/* "${cfg.stateDir}/csgo"
     done
+    ${linkConfigs}
     echo "Done registering plugins"
+
+    # Fix permissions
+    chown -R ${cfg.user}:${cfg.group} ${cfg.stateDir}
+    chmod -R +w ${cfg.stateDir}
   '';
-  plugins = pkgs.buildEnv {
-    name = "csgods-plugins";
-    paths = cfg.plugins;
-  };
+
+  plugins = pkgs.linkFarmFromDrvs "csgods-plugins" cfg.plugins;
+
+  linkConfigs = lib.concatMapStringsSep "\n" (path: ''ln -fsv "${path}" "${cfg.stateDir}/csgo/cfg/${baseNameOf path.name}"'') cfg.configs;
 
   launchOptions = {
     tickrate = mkOption {
@@ -103,6 +106,12 @@ in
       default = [ ];
       description = "CS:GO server plugins to be installed on the server";
     };
+
+    configs = mkOption {
+      type = types.listOf types.path;
+      default = [ ];
+      description = "Config files available to be executed by the server with `exec`";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -126,14 +135,11 @@ in
       environment = {
         LD_LIBRARY_PATH = "${cfg.stateDir}:${cfg.stateDir}/bin";
       };
-  # default = "-autoupdate -game csgo -usercon -tickrate 128 -port 27015 +game_type 0 +game_mode 0 +mapgroup mg_active +map de_dust2";
-      preStart = ''
-      '';
       serviceConfig = {
         ExecStartPre = "${csgods-update}";
         ExecStart = ''${cfg.stateDir}/srcds_run \
           -game csgo -usercon \
-          +game_type 0 +game_mode 0 \
+          +game_type 0 +game_mode 1 \
           -autoupdate -steam_dir ${cfg.stateDir} -steamcmd_script ${csgods-update} \
           -tickrate ${toString cfg.launchOptions.tickrate} \
           -maxplayers ${toString cfg.launchOptions.maxPlayers} \

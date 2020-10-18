@@ -10,7 +10,7 @@ let
     ${pkgs.steamcmd}/bin/steamcmd <<EOF
       login anonymous
       force_install_dir ${cfg.stateDir}
-      app_update 740 validate
+      app_update 740
       exit
     EOF
     ${pkgs.patchelf}/bin/patchelf \
@@ -18,7 +18,19 @@ let
        --set-rpath "${cfg.stateDir}/bin" \
        ${cfg.stateDir}/srcds_linux
     echo "Done updating"
+
+    echo "Registering plugins"
+    ln -fs "${plugins}/addons" "${cfg.stateDir}/csgo"
+    for f in ${plugins}/cfg/*; do
+      ln -fs "$f" "${cfg.stateDir}/csgo/cfg"
+    done
+    echo "Done registering plugins"
   '';
+  plugins = pkgs.buildEnv {
+    name = "csgods-plugins";
+    paths = cfg.plugins;
+  };
+
   launchOptions = {
     tickrate = mkOption {
       type = types.int;
@@ -82,6 +94,12 @@ in
       default = {};
       description = "Launch options to be provided for the server";
     };
+
+    plugins = mkOption {
+      type = types.listOf types.package;
+      default = [ ];
+      description = "CS:GO server plugins to be installed on the server";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -106,6 +124,8 @@ in
         LD_LIBRARY_PATH = "${cfg.stateDir}:${cfg.stateDir}/bin";
       };
   # default = "-autoupdate -game csgo -usercon -tickrate 128 -port 27015 +game_type 0 +game_mode 0 +mapgroup mg_active +map de_dust2";
+      preStart = ''
+      '';
       serviceConfig = {
         ExecStartPre = "${csgods-update}";
         ExecStart = ''${cfg.stateDir}/srcds_run \

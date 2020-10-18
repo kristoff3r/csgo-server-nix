@@ -19,9 +19,12 @@ let
        ${cfg.stateDir}/srcds_linux
     echo "Done updating"
 
+    # Cleanup /tmp/dumps, otherwise it prevents steam from starting
+    rm -rf /tmp/dumps
+
     echo "Registering plugins"
-    ln -fs "${plugins}/addons" "${cfg.stateDir}/csgo"
-    for f in ${plugins}/cfg/*; do
+    ln -fs "${plugins}/share/addons" "${cfg.stateDir}/csgo"
+    for f in ${plugins}/share/cfg/*; do
       ln -fs "$f" "${cfg.stateDir}/csgo/cfg"
     done
     echo "Done registering plugins"

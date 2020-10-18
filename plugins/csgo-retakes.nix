@@ -15,10 +15,10 @@ stdenv.mkDerivation {
 
   installPhase = ''
     unzip $src
-    mkdir -p $out/addons/sourcemod/plugins
-    mkdir -p $out/cfg/sourcemod
-    cp addons/sourcemod/plugins/retakes.smx $out/addons/sourcemod/plugins
-    cp -r addons/sourcemod/translations $out/addons/sourcemod
-    cp -r cfg/sourcemod/retakes $out/cfg/sourcemod
+    mkdir -p $out/share/addons/sourcemod/plugins
+    mkdir -p $out/share/cfg/sourcemod
+    cp addons/sourcemod/plugins/retakes.smx $out/share/addons/sourcemod/plugins
+    cp -r addons/sourcemod/translations $out/share/addons/sourcemod
+    cp -r cfg/sourcemod/retakes $out/share/cfg/sourcemod
   '';
 }

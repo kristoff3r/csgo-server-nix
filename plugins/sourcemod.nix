@@ -1,4 +1,4 @@
-{ multiStdenv, fetchgit, ambuild, hl2sdk-csgo, metamod-source, pkgsi686Linux, git, gccMultiStdenv }:
+{ multiStdenv, fetchgit, ambuild, hl2sdk-csgo, metamod-source, git }:
 
 multiStdenv.mkDerivation rec {
   name = "sourcemod-${version}";
@@ -20,14 +20,15 @@ multiStdenv.mkDerivation rec {
 
   buildPhase = ''
     ln -s ${hl2sdk-csgo} hl2sdk-csgo
-    ln -s ${metamod-source} metamod-source
+    ln -s ${metamod-source}/include metamod-source
     mkdir build
     cd build
-    python ../configure.py --sdks csgo --no-mysql
+    python ../configure.py --sdks present --no-mysql
+    ambuild
   '';
 
   installPhase = ''
-    ambuild
-    mv package $out
+    mkdir $out
+    mv package $out/share
   '';
 }

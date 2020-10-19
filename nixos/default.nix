@@ -64,12 +64,13 @@ let
       description = "Starting map";
     };
     gameLoginToken = mkOption {
-      type = types.str;
+      type = types.nullOr types.str;
       description = ''
         Game Login Token, which is required for non-LAN servers.
         Can be generated on https://steamcommunity.com/dev/managegameservers.
         Note that you need different ones for each server.
       '';
+      default = null;
     };
   };
 in
@@ -146,7 +147,7 @@ in
           -ip ${cfg.launchOptions.ip} \
           -port ${toString cfg.launchOptions.port} \
           +map ${cfg.launchOptions.map} \
-          +sv_setsteamaccount ${cfg.launchOptions.gameLoginToken}
+          ${optionalString (cfg.launchOptions.gameLoginToken != null) "+sv_setsteamaccount ${cfg.launchOptions.gameLoginToken}"}
         '';
         TimeoutStartSec = 0;
         RestartSec = "120s";

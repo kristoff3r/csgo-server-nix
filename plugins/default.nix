@@ -13,4 +13,5 @@ rec {
   sourcemod = pkgs.callPackage ./sourcemod.nix { inherit hl2sdk-csgo ambuild metamod-source; };
   csgo-retakes = pkgs.callPackage ./csgo-retakes.nix { };
   csgo-practice-mode = pkgs.callPackage ./csgo-practice-mode.nix { };
+  csgo-pug-setup = pkgs.callPackage ./csgo-pug-setup.nix { };
 }

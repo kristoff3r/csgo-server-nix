@@ -7,7 +7,7 @@ multiStdenv.mkDerivation rec {
   src = fetchgit {
     url = "https://github.com/alliedmodders/sourcemod.git";
     rev = "39c2dc60e0c0d963cfbe39bee3a7cf953cc8055c";
-    sha256 = "sha256-hKbYuM/mR5Kw4F4FiCEHfMHEfFAod9gK3xLO/FoyNGE";
+    sha256 = "sha256-+epXyPYePgR6tIb+PoFGRZrkMakCmn7u3xlLi4LwGh0=";
     leaveDotGit = true;
   };
 

@@ -8,7 +8,7 @@ multiStdenv.mkDerivation rec {
     url = "https://github.com/alliedmodders/metamod-source.git";
     # Current master
     rev = "b8d1fd401d685fe711ad27e4e169742bd8a51978";
-    sha256 = "sha256-aoEvnzdOm4yC40HN7myTfQEh7CVraQpOINfh9j/lu6o=";
+    sha256 = "sha256-BVzIfRsQjTiQq2JyyxJB6zN++eelzcU6opqBd9EhAac=";
     # dev-1.10 (doesn't work, seems abandoned)
     # rev = "6c8495f05825c71a9ba53d03a88047e3c4088f5d";
     # sha256 = "sha256-FMZmoBS4xA/QbUaeSu3oreAwhwH8uNHzN9z0pQdB1hA=";

@@ -26,7 +26,8 @@ let
       cp -rLv --no-preserve=mode,ownership $plugin/share/* "${cfg.stateDir}/csgo"
     done
     ${linkConfigs}
-    echo "Done registering plugins"
+    ln -fsv ${adminsFile} "${cfg.stateDir}/csgo/addons/sourcemod/configs/admins_simple.ini"
+    echo "Done registering plugins and configs"
 
     # Fix permissions
     chown -R ${cfg.user}:${cfg.group} ${cfg.stateDir}
@@ -35,36 +36,45 @@ let
 
   plugins = pkgs.linkFarmFromDrvs "csgods-plugins" cfg.plugins;
 
-  linkConfigs = lib.concatMapStringsSep "\n" (path: ''ln -fsv "${path}" "${cfg.stateDir}/csgo/cfg/${baseNameOf path.name}"'') cfg.configs;
+  linkConfigs = lib.concatMapStringsSep "\n" ({ name, content }: ''ln -fsv "${pkgs.writeText name content}" "${cfg.stateDir}/csgo/cfg/${name}"'') cfg.configs;
 
-  launchOptions = {
+  adminsFile = pkgs.writeText "admins_simple.ini" (lib.concatMapStringsSep "\n" (admin: ''"${admin}" "z"'') cfg.pluginOptions.admins);
+
+  pluginOptions = with types; {
+    admins = mkOption {
+      type = listOf str;
+      default = [];
+    };
+  };
+
+  launchOptions = with types; {
     tickrate = mkOption {
-      type = types.int;
+      type = int;
       default = 128;
       description = "Server tickrate";
     };
     maxPlayers = mkOption {
-      type = types.int;
+      type = int;
       default = 14;
       description = "Slots on the server";
     };
     ip = mkOption {
-      type = types.str;
+      type = str;
       default = "0.0.0.0";
       description = "IP address the server binds to";
     };
     port = mkOption {
-      type = types.int;
+      type = int;
       default = 27015;
       description = "Server port";
     };
     map = mkOption {
-      type = types.str;
+      type = str;
       default = "de_dust2";
       description = "Starting map";
     };
     gameLoginToken = mkOption {
-      type = types.nullOr types.str;
+      type = nullOr str;
       description = ''
         Game Login Token, which is required for non-LAN servers.
         Can be generated on https://steamcommunity.com/dev/managegameservers.
@@ -75,41 +85,47 @@ let
   };
 in
 {
-  options.services.csgods = {
+  options.services.csgods = with types; {
     enable = mkEnableOption "CS:GO dedicated server";
 
     user = mkOption {
-      type = types.str;
+      type = str;
       default = "csgods";
       description = "User account under which csgods runs.";
     };
 
     group = mkOption {
-      type = types.str;
+      type = str;
       default = "csgods";
       description = "Group under which csgods runs.";
     };
 
     stateDir = mkOption {
-      type = types.str;
+      type = str;
       default = "/var/lib/csgods";
       description = "Directory for CS:GO dedicated server files.";
     };
 
+    pluginOptions = mkOption {
+      type = submodule { options = pluginOptions; };
+      default = {};
+      description = "Options for sourcemod and sourcemod plugins";
+    };
+
     launchOptions = mkOption {
-      type = with types; submodule { options = launchOptions; };
+      type = submodule { options = launchOptions; };
       default = {};
       description = "Launch options to be provided for the server";
     };
 
     plugins = mkOption {
-      type = types.listOf types.package;
+      type = listOf package;
       default = [ ];
       description = "CS:GO server plugins to be installed on the server";
     };
 
     configs = mkOption {
-      type = types.listOf types.path;
+      type = listOf attrs;
       default = [ ];
       description = "Config files available to be executed by the server with `exec`";
     };
@@ -131,8 +147,8 @@ in
 
     systemd.services.csgods = {
       description = "CS:GO dedicated server";
-      after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
+      after = [ "network-online.target" ];
+      wantedBy = [ "network-online.target" ];
       environment = {
         LD_LIBRARY_PATH = "${cfg.stateDir}:${cfg.stateDir}/bin";
       };
@@ -154,7 +170,7 @@ in
         Restart = "always";
         User = cfg.user;
         Group = cfg.group;
-        WorkingDirectory = "${cfg.stateDir}";
+        WorkingDirectory = "-${cfg.stateDir}";
       };
     };
   };
